@@ -1,5 +1,4 @@
 import SwiftUI
-import UserNotifications
 
 struct NotificationPreferencesView: View {
     @State private var startHour: Int = 3
@@ -10,31 +9,31 @@ struct NotificationPreferencesView: View {
     @State private var endMinute: Int = 0
     @State private var endPeriod: String = "AM"
 
-    @State private var selectedInterval: TimeInterval = 1 * 60  // Default to 1 minute
+    @State private var selectedInterval: TimeInterval = 15 * 60  // Default to 15 minutes
 
     let hours = Array(1...12)
     let periods = ["AM", "PM"]
 
     let intervals: [(String, TimeInterval)] = [
-        ("1 Minute", 1 * 60),
         ("15 Mins", 15 * 60),
         ("30 Mins", 30 * 60),
         ("60 Mins", 60 * 60),
         ("90 Mins", 90 * 60),
         ("2 Hours", 2 * 60 * 60),
         ("3 Hours", 3 * 60 * 60),
-        ("4 Hours", 4 * 60 * 60)
+        ("4 Hours", 4 * 60 * 60),
+        ("5 Hours", 5 * 60 * 60)
     ]
     
     @State private var textAlignment: Alignment = .leading
-    @State private var isNotificationScheduled: Bool = false
+    @State private var isNextPageActive: Bool = false
 
     var body: some View {
         NavigationStack {
             VStack {
                 Text("Notification Preferences")
                     .font(.title)
-                    .padding(.top, 20)
+                    .padding(.top, 0)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: textAlignment)
 
@@ -50,8 +49,8 @@ struct NotificationPreferencesView: View {
                         .padding()
                         .frame(maxWidth: .infinity, alignment: textAlignment)
 
-            
                     VStack(alignment: .leading) {
+                        // Start time pickers
                         HStack {
                             Text("Start hour")
                                 .font(.headline)
@@ -89,6 +88,7 @@ struct NotificationPreferencesView: View {
                         
                         Divider()
              
+                        // End time pickers
                         HStack {
                             Text("End hour")
                                 .font(.headline)
@@ -127,7 +127,6 @@ struct NotificationPreferencesView: View {
                     .background(Color(.systemGray6))
                     .padding()
                    
-              
                     VStack(alignment: .leading) {
                         Text("Notification interval")
                             .font(.headline)
@@ -139,11 +138,8 @@ struct NotificationPreferencesView: View {
                             .foregroundColor(.gray)
                             .frame(maxWidth: .infinity, alignment: textAlignment)
 
-                       
                         LazyVGrid(
-                            columns: Array(
-                                repeating: GridItem(.flexible(), spacing: 10),
-                                count: 4), spacing: 10
+                            columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10
                         ) {
                             ForEach(intervals, id: \.1) { interval in
                                 Button(action: {
@@ -152,15 +148,8 @@ struct NotificationPreferencesView: View {
                                     Text(interval.0)
                                         .padding(14)
                                         .frame(maxWidth: .infinity)
-                                        .background(
-                                            selectedInterval == interval.1
-                                                ? Color.cyan
-                                                : Color.gray.opacity(0.2)
-                                        )
-                                        .foregroundColor(
-                                            selectedInterval == interval.1
-                                                ? .white : .black
-                                        )
+                                        .background(selectedInterval == interval.1 ? Color.cyan : Color.gray.opacity(0.2))
+                                        .foregroundColor(selectedInterval == interval.1 ? .white : .black)
                                         .cornerRadius(10)
                                 }
                             }
@@ -168,12 +157,10 @@ struct NotificationPreferencesView: View {
                     }
                     .padding(.horizontal)
 
-             
                     Button(action: {
-                        scheduleNotifications()
-                        isNotificationScheduled = true
+                        isNextPageActive = true
                     }) {
-                        Text("Start")
+                        Text("Next")
                             .font(.headline)
                             .foregroundColor(.white)
                             .padding()
@@ -181,94 +168,17 @@ struct NotificationPreferencesView: View {
                             .background(Color.cyan)
                             .cornerRadius(10)
                             .padding(.horizontal)
-                            .padding(.top, 30)
+                            .padding(.top, 20)
                     }
-                    .navigationDestination(isPresented: $isNotificationScheduled) {
-                        NotificationScheduledView()
+                    .navigationDestination(isPresented: $isNextPageActive) {
+                        Water()
                     }
 
                     Spacer()
                 }
                 .padding(.top)
             }
-            .onAppear(perform: requestNotificationPermission)
         }
-    }
-
-
-    private func requestNotificationPermission() {
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
-            if granted {
-                print("Permission granted")
-            } else if let error = error {
-                print("Error requesting permission: \(error)")
-            }
-        }
-    }
-
-  
-    private func scheduleNotifications() {
-        let center = UNUserNotificationCenter.current()
-        
- 
-        var components = DateComponents()
-        components.calendar = Calendar.current
-        
-        let startHour24 = (startPeriod == "PM" && startHour != 12) ? startHour + 12 : (startPeriod == "AM" && startHour == 12) ? 0 : startHour
-        components.hour = startHour24
-        components.minute = startMinute
-        
-        let startDate = Calendar.current.date(from: components) ?? Date()
-        
-
-        var endComponents = DateComponents()
-        endComponents.calendar = Calendar.current
-        let endHour24 = (endPeriod == "PM" && endHour != 12) ? endHour + 12 : (endPeriod == "AM" && endHour == 12) ? 0 : endHour
-        endComponents.hour = endHour24
-        endComponents.minute = endMinute
-        
-        let endDate = Calendar.current.date(from: endComponents) ?? Date()
-
-       
-        var currentDate = startDate
-        while currentDate <= endDate {
-            let content = UNMutableNotificationContent()
-            content.title = "Time to Hydrate!"
-            content.body = "It's time to drink water."
-            content.sound = UNNotificationSound.default
-
-           
-            let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: currentDate)
-            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-
-           
-            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-            center.add(request) { error in
-                if let error = error {
-                    print("Error adding notification: \(error)")
-                }
-            }
-
-            
-            currentDate.addTimeInterval(selectedInterval)
-        }
-    }
-}
-
-struct NotificationScheduledView: View {
-    var body: some View {
-        VStack {
-            Text("Notifications Scheduled!")
-                .font(.largeTitle)
-                .padding()
-
-            Text("You will receive notifications according to your preferences.")
-                .font(.subheadline)
-                .padding()
-        }
-        .navigationTitle("Confirmation")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

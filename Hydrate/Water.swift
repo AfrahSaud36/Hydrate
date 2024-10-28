@@ -30,12 +30,10 @@ struct Water: View {
                     
                     Circle()
                         .trim(from: 0.0, to: min(CGFloat(waterIntake / dailyGoal), 1.0))
-                        .stroke(Color.cyan, lineWidth: 20) // Use only cyan color
+                        .stroke(Color.cyan, lineWidth: 20)
                         .rotationEffect(Angle(degrees: -90))
                         .animation(.easeInOut, value: waterIntake)
 
-                    
-                
                     Image(systemName: currentIcon)
                         .font(.largeTitle)
                         .foregroundColor(.yellow)
@@ -46,60 +44,29 @@ struct Water: View {
                     .font(.title)
                     .bold()
                 
-                VStack {
-                    HStack(spacing: 0) {
-                        Button(action: {
-                            if waterIntake > 0.0 {
-                                waterIntake -= 0.1
-                            }
-                        }) {
-                            
-                            HStack {
-                                Image(systemName: "minus")
-                                    .font(.title2)
-                            }
-                            .frame(width: 50, height: 50)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                        }
-                        
-                        Button(action: {
-                            if waterIntake < dailyGoal {
-                                waterIntake += 0.675
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "plus")
-                                    .font(.title2)
-                            }
-                            .frame(width: 50, height: 50)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                        }
-                    }
-                    .padding(.top,10)
-                    .offset(y: 90)
-                    
+                Stepper(value: $waterIntake, in: 0...dailyGoal, step: 0.675) {
+
                 }
+                .padding()
+                .offset(y: 99)
+                .offset(x: -110)
                 
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-          
             VStack(alignment: .leading) {
                 Text("Today's Water Intake")
                     .font(.headline)
                     .padding(.top, 40)
-                    .padding(.leading, 20) // Add padding to the left for spacing
+                    .padding(.leading, 20)
                     .foregroundColor(Color.gray)
-                
                 
                 Text("\(String(format: "%.1f", waterIntake)) liter / \(String(format: "%.1f", dailyGoal)) liter")
                     .font(.title2)
                     .bold()
                     .padding(.leading, 20)
-                    .foregroundColor(waterIntake >= dailyGoal ? Color.green : Color.primary) 
+                    .foregroundColor(waterIntake >= dailyGoal ? Color.green : Color.primary)
             }
         }
     }
