@@ -49,7 +49,7 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                NavigationLink(destination: NotificationPreferencesView()) {
+                NavigationLink(destination: NotificationView()) {
                     Text("Next")
                         .frame(maxWidth: .infinity)
                         .padding()
