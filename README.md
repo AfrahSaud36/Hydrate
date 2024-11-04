@@ -148,8 +148,9 @@ This is the main view of the Hydrate app, where users can:
 
 This project was made possible with the support and resources from:
 
+- **Noura** – for her continuous support and encouragement throughout the project.
 - **Apple Developer Academy** – for providing guidance, mentorship, and resources in iOS development and UI/UX standards.
 - **SwiftUI Documentation** – for offering detailed and helpful resources for developing with SwiftUI.
 - **GitHub Community** – for providing valuable insights and code-sharing platforms to enhance development.
-- **Noura** – for her continuous support and encouragement throughout the project.
+  
 
